@@ -50,10 +50,13 @@ class LLM:
             if not ChatOllama:
                 raise ImportError("langchain-ollama or langchain-community not installed")
             
-            # Default to llama3 if not specified
-            model = self.model_name or "llama3"
-            self.llm = ChatOllama(model=model, temperature=0)
-            self.embeddings = OllamaEmbeddings(model=model)
+            # Default to llama3 for chat if not specified
+            chat_model = self.model_name or "llama3"
+            # User specifically requested nomic-embed-text for embeddings
+            embed_model = "nomic-embed-text"
+            
+            self.llm = ChatOllama(model=chat_model, temperature=0)
+            self.embeddings = OllamaEmbeddings(model=embed_model)
             
         else:
             raise ValueError(f"Unsupported provider: {provider}")

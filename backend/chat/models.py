@@ -2,6 +2,7 @@ from django.db import models
 
 # Create your models here.
 class ChatRoom(models.Model):
+    DB_TYPE = 'org'
     name = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -9,6 +10,7 @@ class ChatRoom(models.Model):
         return self.name
     
 class ChatMessages(models.Model):
+    DB_TYPE = 'org'
     room = models.ForeignKey(ChatRoom, related_name='messages', on_delete=models.CASCADE)
     message = models.TextField()
     sender = models.CharField(max_length=255)

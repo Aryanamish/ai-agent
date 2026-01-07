@@ -66,6 +66,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "aichatbot.middleware.OrganizationMiddleware",
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -109,6 +110,8 @@ DATABASES = {
         "NAME": BASE_DIR / "db/db.sqlite3",
     }
 }
+
+DATABASE_ROUTERS = ['aichatbot.db_router.OrganizationRouter']
 
 
 # Password validation

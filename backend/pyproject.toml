@@ -8,7 +8,15 @@ dependencies = [
     "channels>=4.3.2",
     "daphne>=4.2.1",
     "django>=6.0.1",
+    "django-cors-headers>=4.9.0",
+    "django-environ>=0.12.0",
+    "djangorestframework>=3.16.1",
+    "langchain-core>=1.2.6",
+    "langchain-google-genai>=4.1.3",
+    "langchain-openai>=1.1.6",
+    "langgraph>=1.0.5",
     "pillow>=12.1.0",
+    "pydantic>=2.12.5",
 ]
 
 [dependency-groups]

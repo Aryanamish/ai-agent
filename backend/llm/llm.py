@@ -6,7 +6,10 @@ from pydantic import BaseModel, Field
 
 # Try imports for different providers
 try:
-    from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+    from langchain_google_genai import (
+        ChatGoogleGenerativeAI,
+        GoogleGenerativeAIEmbeddings,
+    )
 except ImportError:
     ChatGoogleGenerativeAI = None
     GoogleGenerativeAIEmbeddings = None
@@ -49,17 +52,30 @@ class LLM:
         elif self.provider == "ollama":
             if not ChatOllama:
                 raise ImportError("langchain-ollama or langchain-community not installed")
-            
+
+            base_url = self._get_ollama_base_url()
+
             # Default to llama3 for chat if not specified
             chat_model = self.model_name or "llama3"
             # User specifically requested nomic-embed-text for embeddings
             embed_model = "nomic-embed-text"
-            
-            self.llm = ChatOllama(model=chat_model, temperature=0)
-            self.embeddings = OllamaEmbeddings(model=embed_model)
+
+            self.llm = ChatOllama(model=chat_model, temperature=0, base_url=base_url)
+            self.embeddings = OllamaEmbeddings(model=embed_model, base_url=base_url)
             
         else:
             raise ValueError(f"Unsupported provider: {provider}")
+
+    def _get_ollama_base_url(self):
+        base_url = os.environ.get("OLLAMA_BASE_URL")
+        if not base_url:
+            try:
+                from django.conf import settings
+
+                base_url = getattr(settings, "OLLAMA_BASE_URL", None)
+            except ImportError:
+                pass
+        return base_url
 
     def _get_google_api_key(self):
         api_key = os.environ.get("GOOGLE_API_KEY")

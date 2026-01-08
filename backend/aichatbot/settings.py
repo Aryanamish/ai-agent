@@ -36,6 +36,7 @@ DEBUG = env.bool("DEBUG", default=True)
 ALLOWED_HOSTS = []
 
 GOOGLE_API_KEY = env("GOOGLE_API_KEY", default=None)
+OLLAMA_BASE_URL = env("OLLAMA_BASE_URL", default="http://localhost:11434")
 
 
 # Application definition

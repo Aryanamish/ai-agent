@@ -1,9 +1,10 @@
 import json
 import logging
-from typing import TypedDict, List, Dict, Any
+from typing import Any, Dict, List, TypedDict
 
-from langgraph.graph import StateGraph, END
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langgraph.graph import END, StateGraph
+
 from llm.llm import LLM
 from organization.models import BotSettings
 from organization.search import search_products
@@ -25,8 +26,8 @@ def analyze_intent(state: AgentState):
     """Classifies query into 'general' or 'product_search'."""
     prompt = state['bot_settings'].intent_prompt
     query = state['input']
-    
-    llm = LLM(provider="ollama", model_name="deepseek-r1")
+
+    llm = LLM(provider="ollama", model_name="mistral")
     messages = [
         SystemMessage(content=prompt),
         HumanMessage(content=f"Query: {query}")
@@ -44,8 +45,8 @@ def general_response(state: AgentState):
     system_prompt = state['bot_settings'].system_prompt
     history = state['chat_history']
     query = state['input']
-    
-    llm = LLM(provider="ollama", model_name="deepseek-r1")
+
+    llm = LLM(provider="ollama", model_name="mistral")
     messages = [SystemMessage(content=system_prompt)] + history + [HumanMessage(content=query)]
     
     response = llm.invoke(messages)
@@ -59,7 +60,7 @@ def extract_attributes(state: AgentState):
     query = state['input']
     
     # Merge history for better context? For now just query.
-    llm = LLM(provider="ollama", model_name="deepseek-r1")
+    llm = LLM(provider="ollama", model_name="mistral")
     messages = [
         SystemMessage(content=f"{prompt}\nRequired Attributes Scheme: {json.dumps(required)}\nReturn ONLY JSON."),
         HumanMessage(content=f"Query: {query}")
@@ -100,8 +101,8 @@ def ask_missing(state: AgentState):
     settings = state['bot_settings']
     missing = state['missing_attributes']
     prompt = settings.missing_attribute_prompt
-    
-    llm = LLM(provider="ollama", model_name="deepseek-r1")
+
+    llm = LLM(provider="ollama", model_name="mistral")
     messages = [
         SystemMessage(content=f"{prompt}\nMissing fields: {', '.join(missing)}\nYou are a helpful customer service agent. The user provided some info but missed these details."),
         HumanMessage(content="Ask the user for these missing details. Be direct, polite, and brief. Do not offer options. Ask a single clear question.")
@@ -133,8 +134,8 @@ def recommend(state: AgentState):
     query = state['input']
     
     context = json.dumps(results, indent=2)
-    
-    llm = LLM(provider="ollama", model_name="deepseek-r1")
+
+    llm = LLM(provider="ollama", model_name="mistral")
     messages = [
         SystemMessage(content=f"{prompt}\n\nProducts Found:\n{context}"),
         HumanMessage(content=f"User Query: {query}\nProvide recommendations. Be helpful and concise.")
@@ -176,22 +177,14 @@ workflow.set_entry_point("analyze_intent")
 # Edges
 workflow.add_conditional_edges(
     "analyze_intent",
-    lambda x: "general_response" if x['intent'] == 'general' else "extract_attributes",
-    {
-        "general_response": "general_response",
-        "extract_attributes": "extract_attributes"
-    }
+    lambda x: "general_response" if x["intent"] == "general" else "extract_attributes",
 )
 
 workflow.add_edge("extract_attributes", "check_attributes")
 
 workflow.add_conditional_edges(
     "check_attributes",
-    lambda x: "ask_missing" if x['missing_attributes'] else "search_products",
-    {
-        "ask_missing": "ask_missing",
-        "search_products": "search_products"
-    }
+    lambda x: "ask_missing" if x["missing_attributes"] else "search_products",
 )
 
 workflow.add_edge("search_products", "recommend")

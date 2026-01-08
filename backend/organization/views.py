@@ -2,11 +2,12 @@ from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
-from .models import Organization, Products
+from .models import Organization, Products, BotSettings
 from .serializers import (
     OrganizationSerializer,
     ProductListSerializer,
     ProductsSerializer,
+    BotSettingsSerializer,
 )
 
 
@@ -18,6 +19,11 @@ class StandardResultsSetPagination(PageNumberPagination):
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
+    permission_classes = [IsAdminUser]
+
+class BotSettingsViewSet(viewsets.ModelViewSet):
+    queryset = BotSettings.objects.all()
+    serializer_class = BotSettingsSerializer
     permission_classes = [IsAdminUser]
 
 class ProductsViewSet(viewsets.ModelViewSet):
@@ -32,3 +38,5 @@ class ProductsViewSet(viewsets.ModelViewSet):
     # In production, this should likely be specific permissions
     permission_classes = [IsAdminUser]
     pagination_class = StandardResultsSetPagination
+
+

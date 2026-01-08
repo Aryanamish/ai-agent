@@ -1,11 +1,16 @@
 from rest_framework import serializers
 
-from .models import Organization, Products
+from .models import Organization, Products, BotSettings
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
+        fields = '__all__'
+
+class BotSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BotSettings
         fields = '__all__'
 
 class ProductsSerializer(serializers.ModelSerializer):

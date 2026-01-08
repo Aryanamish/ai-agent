@@ -50,6 +50,11 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
     previous_slug = settings.DATABASES.get('default').get('NAME') # Just a placeholder check or use utils
     # Actually, we should use the router logic via utils
     
+    # Actually, we should use the router logic via utils
+    
+    # We set it for this search operation. 
+    # Since we removed the finally/clear, this is now "switch scope".
+    # This relies on the caller (View) to clean up or the thread to die.
     set_organization_slug(org_slug)
     
     # Ensure DB exists in settings (dynamic add if needed - reusing logic from router/signals)
@@ -77,7 +82,7 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
                 "name": product.name,
                 "price": float(product.price),
                 "attributes": product.attributes,
-                "image": product.image.url if product.image else None,
+                "image": product.image if product.image else None,
                 "score": float(score)
             })
             
@@ -85,5 +90,16 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
         results.sort(key=lambda x: x['score'], reverse=True)
         return results[:top_k]
         
+    # 3. Sort and Return
+        results.sort(key=lambda x: x['score'], reverse=True)
+        return results[:top_k]
+        
     finally:
-        clear_organization_slug()
+        # We should NOT blindly clear it if we are in a larger request context.
+        # However, for safety in standalone scripts, we want to clear.
+        # But in a nested call stack like View -> Node -> Search, clearing breaks the View.
+        # Ideally, we check if we changed it.
+        # For this codebase, let's REMOVE the clear and let the View/Middleware handle it.
+        # OR better: restore previous.
+        pass
+        # clear_organization_slug() # CAUSING BUG IN CHAT VIEW

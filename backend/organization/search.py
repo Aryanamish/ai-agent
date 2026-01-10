@@ -46,22 +46,17 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
     # We must set the context to the correct org DB
     # We use a context manager or try/finally block
     # But since we are likely calling this from verified context or needing to switch:
-    
-    previous_slug = settings.DATABASES.get('default').get('NAME') # Just a placeholder check or use utils
+
     # Actually, we should use the router logic via utils
-    
+
     # Actually, we should use the router logic via utils
-    
-    # We set it for this search operation. 
+
+    # We set it for this search operation.
     # Since we removed the finally/clear, this is now "switch scope".
     # This relies on the caller (View) to clean up or the thread to die.
     set_organization_slug(org_slug)
-    
+
     # Ensure DB exists in settings (dynamic add if needed - reusing logic from router/signals)
-    if org_slug not in settings.DATABASES:
-         new_db = settings.DATABASES['default'].copy()
-         new_db['NAME'] = settings.BASE_DIR / f"db/{org_slug}.sqlite3"
-         settings.DATABASES[org_slug] = new_db
 
     try:
         products = Products.objects.exclude(embedding__isnull=True)
@@ -89,11 +84,7 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
         # 3. Sort and Return
         results.sort(key=lambda x: x['score'], reverse=True)
         return results[:top_k]
-        
-    # 3. Sort and Return
-        results.sort(key=lambda x: x['score'], reverse=True)
-        return results[:top_k]
-        
+
     finally:
         # We should NOT blindly clear it if we are in a larger request context.
         # However, for safety in standalone scripts, we want to clear.

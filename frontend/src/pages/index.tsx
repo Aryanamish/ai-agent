@@ -1,4 +1,3 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -6,9 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { AlertCircle } from "lucide-react"
 
-export const Route = createFileRoute('/')({
-  component: LandingPage,
-})
+
 
 export function LandingPage() {
   const [username, setUsername] = useState("")

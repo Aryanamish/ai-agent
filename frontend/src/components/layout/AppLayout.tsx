@@ -4,7 +4,7 @@ import { Sidebar, type ChatHistoryItem, type UserProfile } from "./Sidebar";
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  storeName: string;
+  orgName: string;
   chatHistory?: ChatHistoryItem[];
   user?: UserProfile;
   onNewChat?: () => void;
@@ -12,14 +12,7 @@ interface AppLayoutProps {
   onLogout?: () => void;
 }
 
-// Default sample data
-const defaultChatHistory: ChatHistoryItem[] = [
-  { id: "1", title: "Product recommendations", timestamp: new Date() },
-  { id: "2", title: "Order status inquiry", timestamp: new Date() },
-  { id: "3", title: "Return policy questions", timestamp: new Date() },
-  { id: "4", title: "Size guide help", timestamp: new Date() },
-  { id: "5", title: "Shipping options", timestamp: new Date() },
-];
+
 
 const defaultUser: UserProfile = {
   name: "John Doe",
@@ -28,13 +21,14 @@ const defaultUser: UserProfile = {
 
 export function AppLayout({
   children,
-  storeName,
-  chatHistory = defaultChatHistory,
+  orgName,
+  chatHistory=[],
   user = defaultUser,
   onNewChat = () => console.log("New chat"),
   onSelectChat = (id) => console.log("Select chat:", id),
   onLogout = () => console.log("Logout"),
 }: AppLayoutProps) {
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
@@ -56,7 +50,7 @@ export function AppLayout({
         user={user}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header onMenuClick={handleOpenSidebar} />
+        <Header onMenuClick={handleOpenSidebar} orgName={orgName} />
         <main className="flex-1 overflow-hidden">{children}</main>
       </div>
     </div>

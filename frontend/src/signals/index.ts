@@ -12,7 +12,6 @@ effect(()=>{
 
 })
 
-const StoreNameSignal = signal<string>('ABC');
 const ChatHistorySignal = signal<{
   name: string,
   url: string
@@ -20,4 +19,4 @@ const ChatHistorySignal = signal<{
 
 const ChatMessagesSignal = signal<string[]>([])
 
-export { ThemeSignal,StoreNameSignal, ChatHistorySignal ,ChatMessagesSignal};
+export { ThemeSignal, ChatHistorySignal ,ChatMessagesSignal};

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import {StoreNameSignal, ThemeSignal} from "@/signals";
+import { ThemeSignal} from "@/signals";
 import { Sun,Moon } from "lucide-react"
 
 const MenuIcon = () => (
@@ -22,9 +22,10 @@ const MenuIcon = () => (
 
 interface HeaderProps {
   onMenuClick: () => void;
+  orgName: string;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick,orgName }: HeaderProps) {
   return (
     <header className="h-14 border-b border-border bg-card items-center px-4 gap-3 flex justify-between">
       <div>
@@ -42,7 +43,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       {/* Store name */}
       <h1 className="text-lg font-semibold text-foreground truncate">
-        {StoreNameSignal.value}
+        {orgName}
       </h1>
       </div>
       <span>

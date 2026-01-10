@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from organization.agent import app
+from backend.chat.bot.agent import app
 
 
 class Command(BaseCommand):

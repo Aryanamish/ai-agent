@@ -55,9 +55,22 @@ INSTALLED_APPS = [
     "chat",
 ]
 
+# Django REST Framework settings
+REST_FRAMEWORK = {
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "100/minute",  # Anonymous users: 200 requests/hour
+        "user": "1000/minute",  # Authenticated users: 1000 requests/hour
+        "chat": "10/minute",  # Chat endpoint: stricter limit
+    },
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -152,6 +165,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles' / 'collected'
 STATICFILES_DIRS = [
     BASE_DIR / "staticfiles",
 ]
+
+# Whitenoise settings for serving static files in production
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+}
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"

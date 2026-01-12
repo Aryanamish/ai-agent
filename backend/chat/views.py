@@ -8,6 +8,7 @@ from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from aichatbot.utils import get_organization_slug
@@ -41,6 +42,9 @@ class CreateChatRoomView(APIView):
 
 class ChatWithAgentView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'chat'
+
     def post(self, request, *args, **kwargs):
         # 1. Get Organization Context
         org_slug = get_organization_slug()

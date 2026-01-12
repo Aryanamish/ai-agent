@@ -2,7 +2,11 @@ import { useRouteError, isRouteErrorResponse } from "react-router";
 
 export const RouteError = () => {
   const error = useRouteError();
-
+  // because django is strict with trailing slashes
+  // redirect to url with trailing slash then show error page is necessary
+  if(!window.location.href.endsWith("/")){
+    window.location.href = window.location.href +  "/";
+  }
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
       return (
@@ -33,7 +37,7 @@ export const RouteError = () => {
   return (
     <div className="w-full h-screen flex justify-center items-center gap-2">
       <h1>Unexpected Error</h1>
-      <p>Something went wrong.</p>
+      <p>Something went wrong. <a href="/admin/login">Login page</a></p>
     </div>
   );
 };

@@ -2,7 +2,12 @@ import json
 
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import (
+    IsAdminUser,
+    IsAuthenticated,
+    SAFE_METHODS,
+    BasePermission,
+)
 
 from .models import BotSettings, Organization, Products
 from .serializers import (
@@ -11,6 +16,17 @@ from .serializers import (
     ProductListSerializer,
     ProductsSerializer,
 )
+
+
+class IsAdminOrReadOnly(BasePermission):
+    """
+    Allow read-only access to authenticated users, but require admin for edit operations.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return request.user and request.user.is_authenticated
+        return request.user and request.user.is_staff
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -22,7 +38,7 @@ class StandardResultsSetPagination(PageNumberPagination):
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
 
 
@@ -40,5 +56,5 @@ class ProductsViewSet(viewsets.ModelViewSet):
             return ProductListSerializer
         return ProductsSerializer
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrReadOnly]
     pagination_class = StandardResultsSetPagination

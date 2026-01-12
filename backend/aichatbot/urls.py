@@ -18,11 +18,15 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import include, path,re_path
+from django.urls import include, path, re_path
 from django.views.generic import TemplateView
 
-
-from aichatbot.views import CustomAdminLoginView, getCurrentUser, health_check
+from aichatbot.views import (
+    CustomAdminLoginView,
+    getCurrentUser,
+    health_check,
+    logoutUser,
+)
 
 urlpatterns = [
     path("health/", health_check, name="health_check"),
@@ -31,7 +35,8 @@ urlpatterns = [
     path("api/", include("organization.urls")),
     path("api/chat/", include("chat.urls")),
     path("api/user/", getCurrentUser, name="current_user"),
-    re_path(r'^.*$', TemplateView.as_view(template_name='index.html')),
+    path("api/logout/", logoutUser, name="logout"),
+    re_path(r"^.*$", TemplateView.as_view(template_name="index.html")),
 ]
 
 if settings.DEBUG:

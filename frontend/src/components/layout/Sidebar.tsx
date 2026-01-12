@@ -144,7 +144,7 @@ export function Sidebar({
   const navigate = useNavigate()
   const [userProfile, setUserProfile] = useState<UserProfile|null>();
   const logout = async ()=>{
-    await API.post("/admin/logout/");
+    await API.post("/api/logout/");
     window.location.href = "/admin/login/";
   }
   const chatClicked = (chatSlug:string)=>{

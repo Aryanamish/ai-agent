@@ -36,20 +36,39 @@ const ContextForwardingOutlet = () => {
   return <Outlet context={context} />;
 };
 
+const loginCheck = async () => {
+  // lazy implementation of login check because i dont have time to set up proper auth flow.
+
+  try {
+    await API.get("/api/organizations/")
+  } catch (e) {
+    // @ts-expect-error
+    if (e?.response?.status < 500 && e?.response?.status >= 400) {
+      window.location.href = "/admin/login/";
+    }
+    throw new Response("Something went wront", { status: 500 });
+  }
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
+    loader: async()=>{
+      await loginCheck()
+      window.location.href = "/store"
+    },
     element: <LandingPage></LandingPage>,
     errorElement: <RouteError />
 
   },
   {
     path: "/store",
-    loader: async ()=>{
-      try{
+    loader: async () => {
+      loginCheck()
+      try {
         const data = await API.get("/api/organizations/");
         return data
-      }catch(e){
+      } catch (e) {
         throw new Response("Organizations not found", { status: 500 });
       }
 
@@ -61,6 +80,7 @@ export const router = createBrowserRouter([
     path: "/:slug",
     errorElement: <RouteError />,
     loader: async ({ params }) => {
+      loginCheck()
       try {
         const data = await API.get(`/api/organizations/${params.slug}`);
         return data;
@@ -81,10 +101,10 @@ export const router = createBrowserRouter([
           }, {
             path: ":chatRoomId",
             loader: async ({ params }) => {
-              try{
+              try {
                 const data = await API.get(`/${params.slug}/api/chat/history/${params.chatRoomId}/`)
                 return data
-              }catch(e){
+              } catch (e) {
                 throw new Response("Organization not found", { status: 404 });
               }
             },

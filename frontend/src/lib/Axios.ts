@@ -25,6 +25,18 @@ const axiosAgent = axios.create({
   },
 });
 
+axiosAgent.interceptors.request.use((config) => {
+  if (config.url) {
+    const [path, query] = config.url.split("?");
+
+    if (!path.endsWith("/")) {
+      config.url = `${path}/${query ? `?${query}` : ""}`;
+    }
+  }
+
+  return config;
+});
+
 class API {
   get(...args: Parameters<typeof axiosAgent.get>) {
     return axiosAgent.get(...args);
@@ -69,9 +81,22 @@ class API {
       const { value, done } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value, { stream: true });
-      uncompleteMessage += chunk.trim().replace(/^data: /, "");
-			dump += chunk;
-			onMessage(uncompleteMessage);
+      const cleanChunks = (uncompleteMessage + chunk).split("\n").filter(line=>line.trim().length > 0).map(line=>line.trim().replace("data: ",""))
+      const data = []
+      for(const chunk of cleanChunks){
+        try{
+          const temp = JSON.parse(chunk);
+          data.push(temp);
+        }catch(err){
+          uncompleteMessage += chunk;
+        }
+      }
+      if(data.length === cleanChunks.length){
+        uncompleteMessage = "";
+      }
+      data.map((d)=>{
+        onMessage(d);
+      });
     }
 		onEnd(dump)
 		}catch(err){

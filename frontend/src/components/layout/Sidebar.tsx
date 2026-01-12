@@ -1,7 +1,10 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SquarePen } from "lucide-react";
+import API from "@/lib/Axios";
+import { useNavigate } from "react-router";
+import { useEffect,useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Icons as simple SVG components
 const ChevronLeftIcon = () => (
@@ -109,15 +112,16 @@ const XIcon = () => (
 );
 
 export interface ChatHistoryItem {
-  id: string;
-  title: string;
+  slug: string;
+  name: string;
   timestamp: Date;
 }
 
 export interface UserProfile {
-  name: string;
+  username: string;
   email: string;
-  avatar?: string;
+  first_name: string;
+  last_name: string;
 }
 
 interface SidebarProps {
@@ -125,24 +129,46 @@ interface SidebarProps {
   isExpanded: boolean;
   onToggleExpand: () => void;
   onClose: () => void;
-  onNewChat: () => void;
-  onSelectChat: (chatId: string) => void;
-  onLogout: () => void;
-  chatHistory: ChatHistoryItem[];
-  user: UserProfile;
+  orgSlug: string;
 }
 
 export function Sidebar({
   isOpen,
   isExpanded,
+  orgSlug,
   onToggleExpand,
-  onClose,
-  onNewChat,
-  onSelectChat,
-  onLogout,
-  chatHistory,
-  user,
+  onClose
 }: SidebarProps) {
+  //TODO history will not be uptodatd when new chat is created. do some props drilling or global state management
+  const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]|null>(null);
+  const navigate = useNavigate()
+  const [userProfile, setUserProfile] = useState<UserProfile|null>();
+  const logout = async ()=>{
+    await API.post("/admin/logout/");
+    window.location.href = "/admin/login/";
+  }
+  const chatClicked = (chatSlug:string)=>{
+    navigate(`/${orgSlug}/chat/${chatSlug}`);
+  }
+  const newChat = ()=>{
+    navigate(`/${orgSlug}/chat/`);
+  }
+  useEffect(()=>{
+    const controller = new AbortController();
+    API.get(`${orgSlug}/api/chat/history/`, {signal: controller.signal}).then(data=>{
+      setChatHistory(data.data);
+    })
+    API.get("/api/user/", {signal: controller.signal}).then(rsp=>{
+      setUserProfile(rsp.data);
+    })
+    return ()=>{
+      controller.abort();
+    }
+  },[])
+    useEffect(()=>{
+    localStorage.setItem("sidebarExpanded", isExpanded.toString());
+    console.log(isExpanded)
+  }, [isExpanded])
   return (
     <>
       {/* Mobile overlay */}
@@ -193,7 +219,7 @@ export function Sidebar({
           <Button
             variant="default"
             className={cn("w-full", !isExpanded && "justify-center px-0")}
-            onClick={onNewChat}
+            onClick={newChat}
           >
             <PlusIcon />
             {isExpanded && <span>New Chat</span>}
@@ -210,20 +236,24 @@ export function Sidebar({
             </div>
           )}
           <div className="flex-1 overflow-y-auto px-2 space-y-1">
-            {chatHistory.map((chat) => (
+            {chatHistory === null ? <div className='flex flex-col gap-2'>
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div> : chatHistory.map((chat) => (
               <Button
-                key={chat.id}
+                key={chat.slug}
                 variant="ghost"
                 className={cn(
-                  "w-full justify-start",
+                  "w-full justify-start cursor-pointer",
                   !isExpanded && "justify-center px-0"
                 )}
-                onClick={() => onSelectChat(chat.id)}
-                title={chat.title}
+                onClick={()=>chatClicked(chat.slug)}
+                title={chat.name}
               >
                 <MessageSquareIcon />
                 {isExpanded && (
-                  <span className="truncate flex-1 text-left">{chat.title}</span>
+                  <span className="truncate flex-1 text-left">{chat.name}</span>
                 )}
               </Button>
             ))}
@@ -238,25 +268,31 @@ export function Sidebar({
               isExpanded ? "justify-start" : "justify-center"
             )}
           >
-            {user.avatar ? (
-              <img
-                src={user.avatar}
-                alt={user.name}
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            ) : (
+            {userProfile ? 
+            <>
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                 <UserIcon />
               </div>
-            )}
+            
             {isExpanded && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {user.email}
-                </p>
+                <p className="text-sm font-medium truncate">{userProfile.first_name} {userProfile.last_name}</p>
+                <p className="text-xs text-muted-foreground truncate">{userProfile.email}</p>
+                
               </div>
             )}
+            </>:
+            <>
+            <Skeleton className="w-8 h-8 rounded-full" />
+            {isExpanded && 
+              <div className="flex-1 min-w-0">
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            }
+            </>
+            }
+
           </div>
           <Button
             variant="ghost"
@@ -264,7 +300,7 @@ export function Sidebar({
               "w-full text-destructive hover:text-destructive hover:bg-destructive/10",
               !isExpanded && "justify-center px-0"
             )}
-            onClick={onLogout}
+            onClick={logout}
           >
             <LogOutIcon />
             {isExpanded && <span>Logout</span>}

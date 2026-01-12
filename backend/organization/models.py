@@ -25,8 +25,6 @@ class BotSettings(models.Model):
     # Prompts for LangGraph Agent
     intent_prompt = models.TextField(default="Classify the query into 'general' or 'product_search'.")
     attribute_extraction_prompt = models.TextField(default="Extract attributes from the query.")
-    missing_attribute_prompt = models.TextField(default="Ask for missing attributes.")
-    product_recommendation_prompt = models.TextField(default="Recommend products based on these results.")
     def __str__(self):
         return self.name
 

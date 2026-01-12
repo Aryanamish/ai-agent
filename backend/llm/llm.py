@@ -26,10 +26,14 @@ except ImportError:
     except ImportError:
         ChatOllama = None
         OllamaEmbeddings = None
-
+try:
+    from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+except ImportError:
+    ChatOpenAI = None
+    OpenAIEmbeddings = None
 
 class LLM:
-    def __init__(self, provider: Literal["google", "ollama"] = "ollama", model_name: str = None):
+    def __init__(self, provider: Literal["google", "ollama","openai"] = "ollama", model_name: str = None):
         self.provider = provider
         self.model_name = model_name
         
@@ -37,16 +41,13 @@ class LLM:
             if not ChatGoogleGenerativeAI:
                 raise ImportError("langchain-google-genai not installed")
             
-            api_key = self._get_google_api_key()
             self.llm = ChatGoogleGenerativeAI(
-                model=self.model_name or "gemini-1.5-flash",
-                google_api_key=api_key,
+                model=self.model_name or "gemini-2.5-flash",
                 temperature=0,
                 convert_system_message_to_human=True
             )
             self.embeddings = GoogleGenerativeAIEmbeddings(
                 model="models/embedding-001",
-                google_api_key=api_key
             )
             
         elif self.provider == "ollama":
@@ -56,13 +57,26 @@ class LLM:
             base_url = self._get_ollama_base_url()
 
             # Default to llama3 for chat if not specified
-            chat_model = self.model_name or "llama3"
+            chat_model = self.model_name or "mistral"
             # User specifically requested nomic-embed-text for embeddings
             embed_model = "nomic-embed-text"
 
             self.llm = ChatOllama(model=chat_model, temperature=0, base_url=base_url)
             self.embeddings = OllamaEmbeddings(model=embed_model, base_url=base_url)
             
+        elif self.provider == "openai":
+            if not ChatOpenAI:
+                raise ImportError("langchain-openai not installed")
+
+
+            self.llm = ChatOpenAI(
+                model=self.model_name or "gpt-4.1-nano",
+                temperature=0,
+            )
+            self.embeddings = OpenAIEmbeddings(
+                model="text-embedding-3-small",
+            )
+
         else:
             raise ValueError(f"Unsupported provider: {provider}")
 
@@ -92,5 +106,26 @@ class LLM:
     def invoke(self, *args, **kwargs):
         return self.llm.invoke(*args, **kwargs)
 
-    def get_embedding_model(self):
-        return self.embeddings
+
+    @staticmethod
+    def get_embedding_model():
+        EMBEDING_MODEL = os.environ.get("EMBEDING_MODEL")
+        return LLM(provider=EMBEDING_MODEL).embeddings
+    
+    @staticmethod
+    def get_intent_analyzer_model():
+        INTENT_ANALYZER_MODEL = os.environ.get("INTENT_ANALYZER_MODEL")
+        return LLM(provider=INTENT_ANALYZER_MODEL.split("::")[0], model_name=INTENT_ANALYZER_MODEL.split("::")[1])
+    @staticmethod
+    def get_attribute_extraction_model():
+        ATTRIBUTE_EXTRACTION_MODEL = os.environ.get("ATTRIBUTE_EXTRACTION_MODEL")
+        return LLM(provider=ATTRIBUTE_EXTRACTION_MODEL.split("::")[0], model_name=ATTRIBUTE_EXTRACTION_MODEL.split("::")[1])
+
+    @staticmethod
+    def get_generation_model():
+        GENERATION_MODEL = os.environ.get("GENERATION_MODEL")
+        return LLM(provider=GENERATION_MODEL.split("::")[0], model_name=GENERATION_MODEL.split("::")[1])
+
+# response = llm.invoke("Reply with OK")
+# print(response.content)
+

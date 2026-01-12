@@ -1,3 +1,4 @@
+from time import sleep
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from organization.models import Products
@@ -15,10 +16,17 @@ class Command(BaseCommand):
             action='store_true',
             help='Force regeneration of embeddings for all products, even if they already exist.',
         )
+        parser.add_argument(
+            '--timeout',
+            action='store_true',
+            help='Add timeout between every embeding default 0.',
+            default=0,
+        )
 
     def handle(self, *args, **options):
         org_slug = options['org_slug']
         force = options['force']
+        timeout = options['timeout']
 
         self.stdout.write(f"Processing organization: {org_slug}")
 
@@ -34,8 +42,7 @@ class Command(BaseCommand):
         try:
             # Initialize LLM
             try:
-                llm = LLM(provider="ollama")
-                embedding_model = llm.get_embedding_model()
+                embedding_model = LLM.get_embedding_model()
             except Exception as e:
                 self.stderr.write(self.style.ERROR(f"Failed to initialize LLM: {e}"))
                 return
@@ -65,6 +72,8 @@ class Command(BaseCommand):
                     
                     # Generate embedding
                     vector = embedding_model.embed_query(text_to_embed)
+                    if timeout > 0:
+                        sleep(timeout)
                     
                     # Save (using update to be fast and safe, though iterator is already hitting DB)
                     # For bulk updates we could use bulk_update but loop is safer for error handling per item

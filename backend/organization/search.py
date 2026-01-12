@@ -3,18 +3,17 @@ import os
 from django.conf import settings
 from .models import Products
 from aichatbot.utils import set_organization_slug, clear_organization_slug
+import logging
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 # Try imports
 try:
     from langchain_google_genai import GoogleGenerativeAIEmbeddings
 except ImportError:
     GoogleGenerativeAIEmbeddings = None
 
-def get_embedding_model():
-    api_key = os.environ.get("GOOGLE_API_KEY") or getattr(settings, "GOOGLE_API_KEY", None)
-    if not api_key:
-        raise ValueError("GOOGLE_API_KEY is not set.")
-    return GoogleGenerativeAIEmbeddings(google_api_key=api_key, model="models/embedding-001")
 
 def cosine_similarity(v1, v2):
     return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
@@ -34,8 +33,7 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
     # 1. Embed Query
     from llm.llm import LLM
     try:
-        llm_instance = LLM(provider="ollama")
-        model = llm_instance.get_embedding_model()
+        model = LLM.get_embedding_model()
     except Exception as e:
         print(f"Error initializing LLM: {e}")
         return []
@@ -73,7 +71,6 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
             score = cosine_similarity(query_vector, prod_vector)
             
             results.append({
-                "id": product.id,
                 "name": product.name,
                 "price": float(product.price),
                 "attributes": product.attributes,
@@ -84,7 +81,9 @@ def search_products(query: str, org_slug: str, top_k: int = 5):
         # 3. Sort and Return
         results.sort(key=lambda x: x['score'], reverse=True)
         return results[:top_k]
-
+    except Exception as e:
+        logger.error(f"Error during product search: {e}")
+        return []
     finally:
         # We should NOT blindly clear it if we are in a larger request context.
         # However, for safety in standalone scripts, we want to clear.

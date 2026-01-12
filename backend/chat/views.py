@@ -1,6 +1,6 @@
 import json
 from datetime import datetime
-
+import logging
 from django.contrib.auth import get_user_model
 from django.http import StreamingHttpResponse
 from django.shortcuts import get_object_or_404
@@ -17,6 +17,10 @@ from organization.models import BotSettings
 from .bot.agent import run_agent
 from .serializers import ChatMessagesSerializer, ChatRoomSerializer
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
 User = get_user_model()
 
 bot = User.objects.filter(username="shopwise_bot").first()
@@ -25,9 +29,10 @@ bot = User.objects.filter(username="shopwise_bot").first()
 class CreateChatRoomView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        name = request.data.get("name")
         user_id = request.user.id if request.user.is_authenticated else None
-        room = ChatRoom.objects.create(name="", user_id=user_id)
+        room = ChatRoom.objects.create(name=f'{name[:28]}...', user_id=user_id)
         return Response(
             {"chat_room_id": room.slug},
             status=status.HTTP_201_CREATED,
@@ -57,12 +62,15 @@ class ChatWithAgentView(APIView):
             return Response(
                 {"error": "Prompt is required."}, status=status.HTTP_400_BAD_REQUEST
             )
+        
+        if not room_id:
+            return Response(
+                {"error": "Chat room ID is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if room_id:
-            room = get_object_or_404(ChatRoom, pk=room_id)
-        else:
-            user_id = request.user.id if request.user.is_authenticated else None
-            room = ChatRoom.objects.create(name=f"Chat {prompt[:20]}", user_id=user_id)
+
+        room = get_object_or_404(ChatRoom, pk=room_id)
+        
 
         # Assuming only one bot setting per org for now? Or get first.
         bot_settings = BotSettings.objects.first()
@@ -90,7 +98,8 @@ class ChatWithAgentView(APIView):
                     # If it's an answer with suggested items, format accordingly
                     content = msg.message.get("content")
                     items = content.get("item_suggested", [])
-                    item_str = "\n".join([f"- Item ID: {item_id}" for item_id in items])
+                    items_cleaned = [{"name": item["name"], "price": item["price"]} for item in items]
+                    item_str = json.dumps(items_cleaned)
                     full_content = (
                         f"{content.get('airesponse')}\n\nSuggested Items:\n{item_str}"
                     )
@@ -107,14 +116,14 @@ class ChatWithAgentView(APIView):
             from aichatbot.utils import set_organization_slug
 
             set_organization_slug(org_slug)
-
+            logger.debug(f"Starting agent run for org: {org_slug}, room: {room.pk}")
             try:
                 for event in run_agent(
                     prompt,
                     chat_history,
                     org_slug,
                     bot_settings,
-                    session_id=str(room.pk),
+                    room
                 ):
                     # event is a dict of state updates from nodes
                     # we want to extract the final response chunks or status updates
@@ -125,6 +134,12 @@ class ChatWithAgentView(APIView):
                     data_to_send = {}
 
                     for node_name, state_update in event.items():
+                        if "extracted_attributes" in state_update:
+                            current_attrs = room.extracted_attributes or {}
+                            current_attrs.update(state_update["extracted_attributes"])
+                            room.extracted_attributes = current_attrs
+                            room.save()
+
                         if "final_response" in state_update:
                             resp_data = state_update["final_response"]
                             # resp_data is a dict: {'airesponse': '...', 'item_suggested': [...]}
@@ -138,6 +153,8 @@ class ChatWithAgentView(APIView):
 
                             data_to_send = resp_data.get("message")
                         elif "missing_attributes" in state_update:
+                            room.missing_attributes = state_update["missing_attributes"]
+                            room.save()
                             # We could signal that we are asking a question
                             pass
                         elif "intent" in state_update:

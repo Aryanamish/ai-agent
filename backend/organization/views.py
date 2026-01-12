@@ -23,6 +23,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
     permission_classes = [IsAdminUser]
+    lookup_field = 'slug'
 
 
 class BotSettingsViewSet(viewsets.ModelViewSet):

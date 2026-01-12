@@ -1,12 +1,16 @@
-import { Routes, Route } from "react-router";
+import { createBrowserRouter, useLoaderData, Outlet, useOutletContext, useLocation } from "react-router";
 import { LandingPage } from "./pages";
 import { HomePage } from "./pages/home";
-import { useEffect, useState } from "react";
 import API from "@/lib/Axios";
-import NewChat from "./pages/new_chat";
 import Chat, { ChatWrapper } from "./pages/chat";
 import { AppLayout } from "./components/layout";
+import { RouteError } from "./error";
 
+// Wrapper to force remount Chat component on route change
+const NewChatWrapper = () => {
+  const location = useLocation();
+  return <Chat key={location.key} />;
+};
 
 export interface OrgDetails {
   "id": number,
@@ -19,27 +23,90 @@ export interface OrgDetails {
   "system_prompt": string
 }
 
-export function ShopwiseRoutes() {
-  const [data, setData] = useState<OrgDetails[] | null>(null)
-  useEffect(() => {
-    const controller = new AbortController();
-    API.get("api/organizations/", { signal: controller.signal }).then(({ data }: { data: OrgDetails[] }) => {
-      console.log(data);
-      setData(data)
-    })
-    return () => {
-      controller.abort();
-    }
-  }, [])
+export const ChatLayout = () => {
+  const data = useLoaderData().data as OrgDetails;
+  return (
+    <AppLayout orgName={data.name} orgSlug={data.slug}>
+      <Outlet context={{ slug: data.slug }} />
+    </AppLayout>
+  );
+};
+const ContextForwardingOutlet = () => {
+  const context = useOutletContext();
+  return <Outlet context={context} />;
+};
 
-  return <Routes>
-    <Route path="/" element={<LandingPage></LandingPage>} />
-    <Route path="/store" element={<HomePage orgs={data}></HomePage>} />
-    {data?.map((org) => {
-      return <>
-        <Route path={`/${org.slug}/chat`} element={<AppLayout orgName={org.name} key={org.id}><Chat slug={org.slug} /></AppLayout>} />
-        <Route path={`/${org.slug}/chat/:chatRoomId`} element={<AppLayout orgName={org.name} key={org.id}><ChatWrapper slug={org.slug} /></AppLayout>} />
-      </>
-    })}
-  </Routes>
+export const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <LandingPage></LandingPage>,
+    errorElement: <RouteError />
+
+  },
+  {
+    path: "/store",
+    loader: async ()=>{
+      try{
+        const data = await API.get("/api/organizations/");
+        return data
+      }catch(e){
+        throw new Response("Organizations not found", { status: 500 });
+      }
+
+    },
+    element: <HomePage></HomePage>,
+    errorElement: <RouteError />
+  },
+  {
+    path: "/:slug",
+    errorElement: <RouteError />,
+    loader: async ({ params }) => {
+      try {
+        const data = await API.get(`/api/organizations/${params.slug}`);
+        return data;
+      } catch (e) {
+        throw new Response("Organization not found", { status: 404 });
+      }
+
+    },
+    element: <ChatLayout />,
+    children: [
+      {
+        path: "chat",
+        element: <ContextForwardingOutlet />,
+        children: [
+          {
+            index: true,
+            element: <NewChatWrapper />
+          }, {
+            path: ":chatRoomId",
+            loader: async ({ params }) => {
+              try{
+                const data = await API.get(`/${params.slug}/api/chat/history/${params.chatRoomId}/`)
+                return data
+              }catch(e){
+                throw new Response("Organization not found", { status: 404 });
+              }
+            },
+            element: <ChatWrapper />
+          }
+        ]
+      },
+    ]
+  },
+
+])
+
+
+
+
+export interface OrgDetails {
+  "id": number,
+  "name": string,
+  "slug": string,
+  "address": string,
+  "created_at": string,
+  "domain": string,
+  "required_attributes": string,
+  "system_prompt": string
 }

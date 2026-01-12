@@ -81,13 +81,3 @@ export async function* streamChatResponse(storeName: string, prompt: string) {
 }
 
 
-
-export const fetchProductDetails = async (storeName: string, productId: number): Promise<ProductDetails> => {
-  const response = await fetch(`/${storeName}/api/products/${productId}/`);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch product details for ID ${productId}: ${response.statusText}`);
-  }
-
-  return response.json();
-};

@@ -1,6 +1,5 @@
 import {  Link } from "react-router";
-import { useEffect, useState } from "react";
-import API from "@/lib/Axios";
+import {useLoaderData} from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { OrgDetails } from "@/routes";
 
@@ -8,8 +7,8 @@ import type { OrgDetails } from "@/routes";
 
 
 
-export function HomePage({orgs}: {orgs: OrgDetails[] | null}) {
-
+export function HomePage() {
+  const data = useLoaderData().data as OrgDetails[];
   return (
 
     <div className="py-8 container px-4">
@@ -17,8 +16,8 @@ export function HomePage({orgs}: {orgs: OrgDetails[] | null}) {
       <div className="flex w-full gap-10">
 
 
-        {orgs?.map((org) => {
-          return <Link to={`/${org.name}/chat`} key={org.id}>
+        {data?.map((org) => {
+          return <Link to={`/${org.slug}/chat`} key={org.id}>
             <Card className="cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-primary hover:shadow-lg w-40">
               <CardHeader>
                 <CardTitle>

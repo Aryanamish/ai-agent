@@ -33,7 +33,7 @@ SECRET_KEY = env(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 GOOGLE_API_KEY = env("GOOGLE_API_KEY", default=None)
 OLLAMA_BASE_URL = env("OLLAMA_BASE_URL", default="http://localhost:11434")
@@ -82,7 +82,7 @@ ROOT_URLCONF = "aichatbot.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / 'staticfiles'],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -145,7 +145,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / 'staticfiles' / 'collected'
+
+# For serving React build output (assets folder from Vite build)
+STATICFILES_DIRS = [
+    BASE_DIR / "staticfiles",
+]
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+
+LOGIN_REDIRECT_URL = '/store/' 
+LOGOUT_REDIRECT_URL = '/admin/'

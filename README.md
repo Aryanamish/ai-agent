@@ -19,7 +19,9 @@ cd frontend
 pnpm i
 pnpm build
 
-cd ../backend
+cd ..
+cp .env backend/.env
+cd backend
 uv sync
 uv run manage.py collectstatic --noinput
 uv run manage.py runserver

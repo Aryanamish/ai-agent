@@ -29,6 +29,13 @@ pnpm dev
 
 since the project requires a DB with populated data you can download the db.sqlite from [google drive](https://drive.google.com/drive/folders/1ieCG4TlLn5PJqocYd4rG7tiUlmFNNXjB?usp=sharing)
 
+there are two users you can use to login:
+
+
+  - username: `admin`, password: `admin`
+
+  - username: `user`, password: `user`
+
 or you will need to run migration manually 
 
 ```shell

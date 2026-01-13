@@ -101,13 +101,15 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.run\.app$",
 ]
 
-CSRF_TRUSTED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://shopwise.aryanamish.in",
-    "https://*.asia-south1.run.app",
-    "https://*.run.app",
-]
+CSRF_TRUSTED_ORIGINS = env.list(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://shopwise.aryanamish.in",
+    ],
+)
+
 
 ROOT_URLCONF = "aichatbot.urls"
 

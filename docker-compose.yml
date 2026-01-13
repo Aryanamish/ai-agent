@@ -1,0 +1,42 @@
+services:
+  shopwise:
+    image: stuxxnet/shopwise:v1.0.0
+    # Uncomment below to build locally instead of using a pre-built image
+    # build:
+    #   context: .
+    #   dockerfile: dockerfile
+    container_name: shopwise-app
+    ports:
+      - "8000:8000"
+    environment:
+      # Django settings
+      - DEBUG=True
+      - SECRET_KEY=${SECRET_KEY:-your-super-secret-key-change-in-production}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS:-localhost,127.0.0.1,0.0.0.0}
+      
+      # LLM API settings
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY:-}
+      - LANGSMITH_TRACING=${LANGSMITH_TRACING:-}
+      - LANGSMITH_ENDPOINT=${LANGSMITH_ENDPOINT:-}
+      - LANGSMITH_PROJECT=${LANGSMITH_PROJECT:-}
+      - LANGCHAIN_CALLBACKS_BACKGROUND=${LANGCHAIN_CALLBACKS_BACKGROUND:-}
+
+      - EMBEDING_MODEL=${EMBEDING_MODEL:-}
+      - GENERATION_MODEL=${GENERATION_MODEL:-}
+      - ATTRIBUTE_EXTRACTION_MODEL=${ATTRIBUTE_EXTRACTION_MODEL:-}
+      - INTENT_ANALYZER_MODEL=${INTENT_ANALYZER_MODEL:-}
+    volumes:
+      # Persist database files
+      - ./backend/db:/app/db
+      # Optionally persist media files
+      - ./backend/media:/app/media
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

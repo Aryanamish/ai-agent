@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  width="64"
+  height="64"
+  fill="none"
+>
+  <!-- Background -->
+  <circle cx="32" cy="32" r="30" fill="#0F172A"/>
+
+  <!-- Robot face -->
+  <rect
+    x="18"
+    y="16"
+    width="28"
+    height="18"
+    rx="8"
+    fill="#E5E7EB"
+  />
+
+  <!-- Eyes -->
+  <circle cx="26" cy="25" r="2.5" fill="#0F172A"/>
+  <circle cx="38" cy="25" r="2.5" fill="#0F172A"/>
+
+  <!-- Hands -->
+  <circle cx="18" cy="40" r="3" fill="#E5E7EB"/>
+  <circle cx="46" cy="40" r="3" fill="#E5E7EB"/>
+
+  <!-- Shopping bag (body) -->
+  <rect
+    x="24"
+    y="36"
+    width="16"
+    height="12"
+    rx="2"
+    fill="#38BDF8"
+  />
+
+  <!-- Bag handle -->
+  <path
+    d="M28 36 C28 32, 36 32, 36 36"
+    stroke="#0F172A"
+    stroke-width="2"
+    fill="none"
+  />
+
+  <!-- Legs -->
+  <rect x="26" y="50" width="4" height="6" rx="2" fill="#E5E7EB"/>
+  <rect x="34" y="50" width="4" height="6" rx="2" fill="#E5E7EB"/>
+</svg>

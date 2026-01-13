@@ -1,0 +1,6 @@
+.vscode
+*.sqlite3
+
+dist/
+.env
+backups/

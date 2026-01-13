@@ -33,7 +33,16 @@ SECRET_KEY = env(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=True)
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+        "shopwise.aryanamish.in",
+        ".asia-south1.run.app",  # Wildcard for GCP Cloud Run
+        ".run.app",  # All Cloud Run regions
+    ],
+)
 
 GOOGLE_API_KEY = env("GOOGLE_API_KEY", default=None)
 OLLAMA_BASE_URL = env("OLLAMA_BASE_URL", default="http://localhost:11434")
@@ -83,11 +92,21 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://shopwise.aryanamish.in",
+]
+
+# Allow all GCP Cloud Run origins
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.asia-south1\.run\.app$",
+    r"^https://.*\.run\.app$",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://shopwise.aryanamish.in",
+    "https://*.asia-south1.run.app",
+    "https://*.run.app",
 ]
 
 ROOT_URLCONF = "aichatbot.urls"

@@ -1,6 +1,7 @@
 services:
   shopwise:
     image: stuxxnet/shopwise:v1.0.0
+    platform: linux/amd64
     # Uncomment below to build locally instead of using a pre-built image
     # build:
     #   context: .

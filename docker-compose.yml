@@ -1,6 +1,6 @@
 services:
   shopwise:
-    image: stuxxnet/shopwise:v1.0.0
+    image: stuxxnet/shopwise:latest
     platform: linux/amd64
     # Uncomment below to build locally instead of using a pre-built image
     # build:
@@ -33,7 +33,6 @@ services:
       # Persist database files
       - ./backend/db:/app/db
       # Optionally persist media files
-      - ./backend/media:/app/media
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health/"]

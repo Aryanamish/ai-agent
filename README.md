@@ -15,16 +15,19 @@ if you want to run the server locally you will need to copy the .env file to bac
 
 ## Run command
 ```shell
-cd backend
+cd frontend
+pnpm i
+pnpm build
+
+cd ../backend
 uv sync
+uv run manage.py collectstatic --noinput
 uv run manage.py runserver
 ```
 ```shell
-cd frontend
-pnpm i
-pnpm dev
-```
 
+```
+project will be live localhost:8000
 
 since the project requires a DB with populated data you can download the db.sqlite from [google drive](https://drive.google.com/drive/folders/1ieCG4TlLn5PJqocYd4rG7tiUlmFNNXjB?usp=sharing)
 
@@ -39,7 +42,7 @@ or you will need to run migration manually
 
 ```shell
 cd backend
-uv run manage.py migrate_all # this will migrate all organization data also
+uv run manage.py migrate_all # this will migrate all organization DB also
 ```
 
 # Backend Architecture

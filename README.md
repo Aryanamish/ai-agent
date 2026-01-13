@@ -1,5 +1,7 @@
 # Installation Instruction
-this is a django + react project
+this is a django + react project 
+
+it is hosted on [shopwise.aryanamish.in](https://shopwise.aryanamish.in/)
 
 to setup the project you will need uv and node version 24 or above
 
